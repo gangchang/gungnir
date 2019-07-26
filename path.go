@@ -47,3 +47,26 @@ func (up urlPath) match(paths []string) (int, Matched) {
 
 	return i, MatchedSub
 }
+
+func (up urlPath) fullMatch(paths []string) bool {
+	if len(paths) != up.Cnts {
+		return false
+	}
+	i := 0
+	for i = range up.paths {
+		if len(up.paths[i]) == 0 {
+			continue
+		}
+		if strings.EqualFold(up.paths[i], paths[i]) {
+			continue
+		} else {
+			return false
+		}
+	}
+
+	if i+1 != len(paths) {
+		return false
+	}
+
+	return true
+}

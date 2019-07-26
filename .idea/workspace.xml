@@ -2,10 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4a2979c1-79ee-44e8-8d2b-aa76fe937959" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/route_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/context.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/path.go" beforeDir="false" afterPath="$PROJECT_DIR$/path.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/route.go" beforeDir="false" afterPath="$PROJECT_DIR$/route.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/route_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/route_test.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -15,11 +16,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="525">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/route.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="986">
-              <caret line="84" selection-start-line="84" selection-end-line="84" />
+            <state relative-caret-position="462">
+              <caret line="14" selection-start-line="14" selection-end-line="14" />
               <folding>
                 <element signature="e#17#45#0" expanded="true" />
               </folding>
@@ -27,11 +28,29 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/context.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="231">
+              <caret line="7" selection-start-line="7" selection-end-line="7" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/util.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="231">
+              <caret line="7" selection-start-line="7" selection-end-line="7" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/route_test.go">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="462">
-              <caret line="14" lean-forward="true" selection-start-line="14" selection-end-line="14" />
+              <caret line="14" selection-start-line="14" selection-end-line="14" />
               <folding>
                 <element signature="e#17#45#0" expanded="true" />
               </folding>
@@ -42,8 +61,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/path.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="698">
-              <caret line="30" column="7" selection-start-line="30" selection-start-column="7" selection-end-line="30" selection-end-column="7" />
+            <state relative-caret-position="458">
+              <caret line="50" selection-start-line="50" selection-end-line="50" />
             </state>
           </provider>
         </entry>
@@ -67,7 +86,9 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
+        <option value="$PROJECT_DIR$/util.go" />
         <option value="$PROJECT_DIR$/route_test.go" />
+        <option value="$PROJECT_DIR$/context.go" />
         <option value="$PROJECT_DIR$/path.go" />
         <option value="$PROJECT_DIR$/route.go" />
       </list>
@@ -142,17 +163,48 @@
       </list>
     </recent_temporary>
   </component>
+  <component name="TestHistory">
+    <history-entry file="TestRouteMatch_in_github_com_n1ce37_gungnir - 2019.07.25 at 17h 17m 47s.xml">
+      <configuration name="TestRouteMatch in github.com/n1ce37/gungnir" configurationId="GoTestRunConfiguration" />
+    </history-entry>
+    <history-entry file="TestRouteMatch_in_github_com_n1ce37_gungnir - 2019.07.25 at 17h 20m 17s.xml">
+      <configuration name="TestRouteMatch in github.com/n1ce37/gungnir" configurationId="GoTestRunConfiguration" />
+    </history-entry>
+    <history-entry file="TestRouteMatch_in_github_com_n1ce37_gungnir - 2019.07.25 at 17h 20m 45s.xml">
+      <configuration name="TestRouteMatch in github.com/n1ce37/gungnir" configurationId="GoTestRunConfiguration" />
+    </history-entry>
+    <history-entry file="TestRouteMatch_in_github_com_n1ce37_gungnir - 2019.07.25 at 17h 22m 05s.xml">
+      <configuration name="TestRouteMatch in github.com/n1ce37/gungnir" configurationId="GoTestRunConfiguration" />
+    </history-entry>
+    <history-entry file="TestRouteMatch_in_github_com_n1ce37_gungnir - 2019.07.25 at 17h 23m 01s.xml">
+      <configuration name="TestRouteMatch in github.com/n1ce37/gungnir" configurationId="GoTestRunConfiguration" />
+    </history-entry>
+    <history-entry file="TestRouteMatch_in_github_com_n1ce37_gungnir - 2019.07.25 at 17h 24m 01s.xml">
+      <configuration name="TestRouteMatch in github.com/n1ce37/gungnir" configurationId="GoTestRunConfiguration" />
+    </history-entry>
+    <history-entry file="TestRouteMatch_in_github_com_n1ce37_gungnir - 2019.07.25 at 17h 24m 50s.xml">
+      <configuration name="TestRouteMatch in github.com/n1ce37/gungnir" configurationId="GoTestRunConfiguration" />
+    </history-entry>
+    <history-entry file="TestRouteMatch_in_github_com_n1ce37_gungnir - 2019.07.25 at 17h 27m 02s.xml">
+      <configuration name="TestRouteMatch in github.com/n1ce37/gungnir" configurationId="GoTestRunConfiguration" />
+    </history-entry>
+    <history-entry file="TestRouteMatch_in_github_com_n1ce37_gungnir - 2019.07.26 at 08h 52m 28s.xml">
+      <configuration name="TestRouteMatch in github.com/n1ce37/gungnir" configurationId="GoTestRunConfiguration" />
+    </history-entry>
+    <history-entry file="TestRouteMatch_in_github_com_n1ce37_gungnir - 2019.07.26 at 08h 53m 27s.xml">
+      <configuration name="TestRouteMatch in github.com/n1ce37/gungnir" configurationId="GoTestRunConfiguration" />
+    </history-entry>
+  </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="2560" height="1440" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.07964602" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.17618665" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" weight="0.32972136" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" visible="true" weight="0.3993808" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.3993808" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -161,11 +213,11 @@
       <window_info anchor="bottom" id="Version Control" order="9" />
       <window_info anchor="bottom" id="Terminal" order="10" weight="0.32972136" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" weight="0.32972136" />
-      <window_info anchor="right" id="Coverage" side_tool="true" weight="0.32984716" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Database" order="3" />
+      <window_info anchor="right" id="Coverage" order="4" side_tool="true" weight="0.32984716" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -175,43 +227,45 @@
     <integration-enabled>true</integration-enabled>
     <vendoring-mode>true</vendoring-mode>
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/route_test.go</url>
-          <line>8</line>
-          <properties />
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
-  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/gg$TestRouteMatch_in_github_com_n1ce37_gungnir.out" NAME="TestRouteMatch in github.com/n1ce37/gungnir Coverage Results" MODIFIED="1564045790822" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/path.go">
+    <entry file="file://$PROJECT_DIR$/util.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="698">
-          <caret line="30" column="7" selection-start-line="30" selection-start-column="7" selection-end-line="30" selection-end-column="7" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/route.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="986">
-          <caret line="84" selection-start-line="84" selection-end-line="84" />
-          <folding>
-            <element signature="e#17#45#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="231">
+          <caret line="7" selection-start-line="7" selection-end-line="7" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/route_test.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="462">
-          <caret line="14" lean-forward="true" selection-start-line="14" selection-end-line="14" />
+          <caret line="14" selection-start-line="14" selection-end-line="14" />
+          <folding>
+            <element signature="e#17#45#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/context.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="231">
+          <caret line="7" selection-start-line="7" selection-end-line="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/path.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="458">
+          <caret line="50" selection-start-line="50" selection-end-line="50" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/route.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="462">
+          <caret line="14" selection-start-line="14" selection-end-line="14" />
           <folding>
             <element signature="e#17#45#0" expanded="true" />
           </folding>
