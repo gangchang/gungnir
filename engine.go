@@ -1,22 +1,38 @@
 package gungnir
 
 import (
-	"log"
 	"net/http"
 )
 
 type Engine struct {
-	root *Route
+	root *route
 }
 
-func (e *Engine) Run(addr string) {
-	if err := http.ListenAndServe(addr, e); err != nil {
-		log.Print(err)
+func New(basePath string) *Engine{
+	r := newRoute(basePath)
+	return &Engine{
+		root: r,
 	}
 }
 
+func (e *Engine) Group(path string) *route {
+	return e.root.Group(path)
+}
+
+func (e *Engine) Run(addr string, closeCh <-chan struct{})error {
+	srv := http.Server{Addr:addr,Handler:e}
+	go func() {
+	select {
+	case<-closeCh:
+		 srv.Close()
+	}
+	}()
+
+	return srv.ListenAndServe()
+}
+
 func (e *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	ctx := e.getContext(resp, req)
+	ctx := newCtx(resp, req)
 	paths := getRequestPaths(req)
 	r, pos := e.root.findRoute(paths)
 	if r == nil {
@@ -30,8 +46,4 @@ func (e *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	}
 	// TODO millderWareFns
 	handlerFn(ctx)
-}
-
-func (e *Engine) getContext(resp http.ResponseWriter, req *http.Request)*Ctx {
-	return newCtx(resp, req)
 }

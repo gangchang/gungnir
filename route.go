@@ -7,9 +7,9 @@ import (
 
 type handler func(*Ctx)
 
-type Route struct {
+type route struct {
 	path urlPath
-	subRoutes    []*Route
+	subRoutes    []*route
 
 	handlers map[string][]handlerRoute
 
@@ -21,47 +21,79 @@ type handlerRoute struct {
 	handler handler
 }
 
-func NewRoute(path string) *Route{
-	return &Route{path: newURLPath(path)}
+func newRoute(path string) *route{
+	return &route{
+		path: newURLPath(path),
+		handlers: make(map[string][]handlerRoute),
+	}
 }
 
-func (r *Route) AddMillderWareFn(mwf middlerWareFn) {
+func (r *route) AddMillderWareFn(mwf middlerWareFn) {
 	r.middlerWareFns = append(r.middlerWareFns, mwf)
 }
 
-func (r *Route) Group(path string) *Route {
-	subRoute := &Route{
-		path: newURLPath(path),
-		middlerWareFns: r.middlerWareFns,
-	}
+func (r *route) Group(path string) *route {
+	subRoute := newRoute(path)
+	subRoute.middlerWareFns = r.middlerWareFns
+
 	r.subRoutes = append(r.subRoutes, subRoute)
 	return subRoute
 }
 
-func (r *Route) GET(path string, h handler) {
+func (r *route) OPTIONS(path string, h handler) {
+	r.addHandler(path, http.MethodOptions, h)
+}
+
+func (r *route) GET(path string, h handler) {
+	r.addHandler(path, http.MethodGet, h)
+}
+
+func (r *route) HEAD(path string, h handler) {
+	r.addHandler(path, http.MethodHead, h)
+}
+
+func (r *route) POST(path string, h handler) {
+	r.addHandler(path, http.MethodPost, h)
+}
+
+func (r *route) PUT(path string, h handler) {
+	r.addHandler(path, http.MethodPut, h)
+}
+
+func (r *route) PATCH(path string, h handler) {
+	r.addHandler(path, http.MethodPatch, h)
+}
+
+func (r *route) DELETE(path string, h handler) {
+	r.addHandler(path, http.MethodDelete, h)
+}
+
+func (r *route) TRACE(path string, h handler) {
+	r.addHandler(path, http.MethodTrace, h)
+}
+
+func (r *route) CONNECT(path string, h handler) {
+	r.addHandler(path, http.MethodConnect, h)
+}
+
+func (r *route) addHandler(path, method string, h handler) {
 	hr := handlerRoute{
 		urlPath: newURLPath(path),
 		handler: h,
 	}
 
-	handlers, exists := r.handlers[http.MethodGet]
-	if !exists {
-		handlers := make([]handlerRoute, 1)
-		r.handlers[http.MethodGet] = handlers
+	_, exists := r.handlers[method]
+	if !exists{
+		r.handlers[method] = make([]handlerRoute, 0)
 	}
 
-	handlers = append(handlers, hr)
+	r.handlers[method] = append(r.handlers[method], hr)
 }
 
-func (r *Route) POST(path string, h handler) {
-	//hr := handlerRoute{
-	//	urlPath: newURLPath(path),
-	//	handler: h,
-	//}
-	//r.postHandlers  = append(r.postHandlers, hr)
-}
 
-func (r *Route) findRoute(paths []string) (*Route, int) {
+
+
+func (r *route) findRoute(paths []string) (*route, int) {
 	nowRoute := r
 	nowCnt := 0
 	incCnt, matched := nowRoute.Match(paths)
@@ -71,13 +103,13 @@ func (r *Route) findRoute(paths []string) (*Route, int) {
 		return nil, -1
 	}
 	for {
-		matched, incCnt, matchRoute := nowRoute.MatchSub(paths[nowCnt+1:])
+		matched, incCnt, matchRoute := nowRoute.MatchSub(paths[nowCnt:])
 		nowCnt += incCnt
 		switch matched {
 		case MatchedFull:
 			return matchRoute, nowCnt
 		case MatchedSub:
-			if len(r.subRoutes) == 0 {
+			if len(matchRoute.subRoutes) == 0 {
 				return matchRoute, nowCnt
 			}
 			nowRoute = matchRoute
@@ -92,7 +124,7 @@ func (r *Route) findRoute(paths []string) (*Route, int) {
 	}
 }
 
-func (r *Route) findHandler(paths []string, method string) handler {
+func (r *route) findHandler(paths []string, method string) handler {
 	methodHandlers, exists := r.handlers[method]
 	if !exists {
 		return nil
@@ -105,7 +137,7 @@ func (r *Route) findHandler(paths []string, method string) handler {
 	return nil
 }
 
-func (r *Route) Match(paths []string) (int, Matched){
+func (r *route) Match(paths []string) (int, Matched){
 	cnt, matched := r.path.match(paths)
 	switch matched {
 	case MatchedFull:
@@ -114,10 +146,10 @@ func (r *Route) Match(paths []string) (int, Matched){
 		return cnt, matched
 	}
 
-	return -1, MatchedNo
+	return 0, MatchedNo
 }
 
-func (r *Route) MatchSub(paths []string) (Matched, int, *Route) {
+func (r *route) MatchSub(paths []string) (Matched, int, *route) {
 	for _, v := range r.subRoutes {
 		cnt, matched := v.path.match(paths)
 		if matched == MatchedSub || matched == MatchedFull {
@@ -127,7 +159,7 @@ func (r *Route) MatchSub(paths []string) (Matched, int, *Route) {
 	return MatchedNo, -1, nil
 }
 
-func (r *Route) Do(paths []string, method string) {
+func (r *route) Do(paths []string, method string) {
 	switch method {
 	case http.MethodGet:
 		//r.do(r.getHandlers, paths)
@@ -138,7 +170,7 @@ func (r *Route) Do(paths []string, method string) {
 	}
 }
 
-func (r *Route) do(hrs []handlerRoute, paths []string) {
+func (r *route) do(hrs []handlerRoute, paths []string) {
 	for _, v := range hrs {
 		if v.urlPath.fullMatch(paths) {
 			v.handler(nil)

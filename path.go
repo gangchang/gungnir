@@ -16,6 +16,11 @@ type urlPath struct{
 }
 
 func newURLPath(path string) urlPath {
+	if len(path) == 0 {
+		return urlPath{
+			Cnts: 0,
+		}
+	}
 	paths := strings.Split(purePath(path), "/")
 	return urlPath{
 		Cnts: len(paths),
@@ -24,8 +29,11 @@ func newURLPath(path string) urlPath {
 }
 
 func (up urlPath) match(paths []string) (int, Matched) {
+	if up.Cnts == 0 {
+		return 0, MatchedSub
+	}
 	if len(paths) < up.Cnts {
-		return -1, MatchedNo
+		return 0, MatchedNo
 	}
 
 	i := 0
@@ -36,12 +44,12 @@ func (up urlPath) match(paths []string) (int, Matched) {
 		if strings.EqualFold(up.paths[i], paths[i]) {
 			continue
 		} else {
-			return -1, MatchedNo
+			return 0, MatchedNo
 		}
 	}
+	i += 1
 
-	if up.Cnts == i+1 {
-		// full match
+	if up.Cnts == len(paths) {
 		return i, MatchedFull
 	}
 
@@ -49,6 +57,9 @@ func (up urlPath) match(paths []string) (int, Matched) {
 }
 
 func (up urlPath) fullMatch(paths []string) bool {
+	if len(paths) == 0 {
+		return true
+	}
 	if len(paths) != up.Cnts {
 		return false
 	}
@@ -62,10 +73,6 @@ func (up urlPath) fullMatch(paths []string) bool {
 		} else {
 			return false
 		}
-	}
-
-	if i+1 != len(paths) {
-		return false
 	}
 
 	return true

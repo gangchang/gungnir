@@ -12,7 +12,6 @@ func purePath(path string) string {
 }
 
 func getRequestPaths(req *http.Request) []string {
-	path := req.URL.RawPath
-	path = purePath(path)
+	path := purePath(req.URL.Path)
 	return strings.Split(path, "/")
 }
