@@ -1,3 +1,3 @@
 package gungnir
 
-type middlerWareFn func(*Ctx) bool
+type middleWareFn func(*Ctx) bool

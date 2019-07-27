@@ -32,7 +32,7 @@ func (e *Engine) Run(addr string, closeCh <-chan struct{})error {
 }
 
 func (e *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	ctx := newCtx(resp, req)
+	c := newCtx(resp, req)
 	paths := getRequestPaths(req)
 	r, pos := e.root.findRoute(paths)
 	if r == nil {
@@ -44,6 +44,7 @@ func (e *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 		resp.WriteHeader(404)
 		return
 	}
-	// TODO millderWareFns
-	handlerFn(ctx)
+	if r.doMiddleWareFns(c) {
+		handlerFn(c)
+	}
 }

@@ -13,7 +13,7 @@ type route struct {
 
 	handlers map[string][]handlerRoute
 
-	middlerWareFns []middlerWareFn
+	middleWareFns []middleWareFn
 }
 
 type handlerRoute struct {
@@ -28,13 +28,23 @@ func newRoute(path string) *route{
 	}
 }
 
-func (r *route) AddMillderWareFn(mwf middlerWareFn) {
-	r.middlerWareFns = append(r.middlerWareFns, mwf)
+func (r *route) AddMilldeWare(mwf middleWareFn) {
+	r.middleWareFns = append(r.middleWareFns, mwf)
+}
+
+func (r *route) doMiddleWareFns(c *Ctx) bool {
+	for _, fn := range r.middleWareFns {
+		if !fn(c)  {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (r *route) Group(path string) *route {
 	subRoute := newRoute(path)
-	subRoute.middlerWareFns = r.middlerWareFns
+	subRoute.middleWareFns = r.middleWareFns
 
 	r.subRoutes = append(r.subRoutes, subRoute)
 	return subRoute
@@ -89,9 +99,6 @@ func (r *route) addHandler(path, method string, h handler) {
 
 	r.handlers[method] = append(r.handlers[method], hr)
 }
-
-
-
 
 func (r *route) findRoute(paths []string) (*route, int) {
 	nowRoute := r
