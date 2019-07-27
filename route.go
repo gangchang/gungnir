@@ -3,7 +3,6 @@ package gungnir
 import (
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 type handler func(*Ctx)
@@ -11,7 +10,10 @@ type handler func(*Ctx)
 type Route struct {
 	path urlPath
 	subRoutes    []*Route
+
 	handlers map[string][]handlerRoute
+
+	middlerWareFns []middlerWareFn
 }
 
 type handlerRoute struct {
@@ -23,9 +25,14 @@ func NewRoute(path string) *Route{
 	return &Route{path: newURLPath(path)}
 }
 
+func (r *Route) AddMillderWareFn(mwf middlerWareFn) {
+	r.middlerWareFns = append(r.middlerWareFns, mwf)
+}
+
 func (r *Route) Group(path string) *Route {
 	subRoute := &Route{
 		path: newURLPath(path),
+		middlerWareFns: r.middlerWareFns,
 	}
 	r.subRoutes = append(r.subRoutes, subRoute)
 	return subRoute
@@ -47,42 +54,55 @@ func (r *Route) GET(path string, h handler) {
 }
 
 func (r *Route) POST(path string, h handler) {
-	hr := handlerRoute{
-		urlPath: newURLPath(path),
-		handler: h,
-	}
-	r.postHandlers  = append(r.postHandlers, hr)
+	//hr := handlerRoute{
+	//	urlPath: newURLPath(path),
+	//	handler: h,
+	//}
+	//r.postHandlers  = append(r.postHandlers, hr)
 }
 
-func (r *Route) Dispatch(path, method string) *Route {
-	paths := strings.Split(purePath(path), "/")
+func (r *Route) findRoute(paths []string) (*Route, int) {
 	nowRoute := r
 	nowCnt := 0
-	increCnt, matched := nowRoute.Match(paths)
+	incCnt, matched := nowRoute.Match(paths)
 	if matched==MatchedFull || matched==MatchedSub {
-		nowCnt += increCnt
+		nowCnt += incCnt
 	} else {
-		return nil
+		return nil, -1
 	}
 	for {
-		matched, increCnt, matchRoute := nowRoute.MatchSub(paths[nowCnt+1:])
+		matched, incCnt, matchRoute := nowRoute.MatchSub(paths[nowCnt+1:])
+		nowCnt += incCnt
 		switch matched {
 		case MatchedFull:
-			return matchRoute
+			return matchRoute, nowCnt
 		case MatchedSub:
 			if len(r.subRoutes) == 0 {
-				return matchRoute
+				return matchRoute, nowCnt
 			}
 			nowRoute = matchRoute
-			nowCnt += increCnt
+			nowCnt += incCnt
 			continue
 		case MatchedNo:
 			fmt.Println("not matched")
-			return nil
+			return nil, -1
 		default:
-			return nil
+			return nil, -1
 		}
 	}
+}
+
+func (r *Route) findHandler(paths []string, method string) handler {
+	methodHandlers, exists := r.handlers[method]
+	if !exists {
+		return nil
+	}
+	for _, v := range methodHandlers{
+		if v.fullMatch(paths) {
+			return v.handler
+		}
+	}
+	return nil
 }
 
 func (r *Route) Match(paths []string) (int, Matched){
@@ -110,9 +130,9 @@ func (r *Route) MatchSub(paths []string) (Matched, int, *Route) {
 func (r *Route) Do(paths []string, method string) {
 	switch method {
 	case http.MethodGet:
-		r.do(r.getHandlers, paths)
+		//r.do(r.getHandlers, paths)
 	case http.MethodPost:
-		r.do(r.postHandlers, paths)
+		//r.do(r.postHandlers, paths)
 	default:
 		// not support method
 	}
