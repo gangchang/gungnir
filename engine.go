@@ -32,7 +32,8 @@ func (e *Engine) Run(addr string, closeCh <-chan struct{}) error {
 }
 
 func (e *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	c := newCtx(resp, req)
+	// TODO add values
+	c := newCtx(resp, req, nil)
 	paths := getRequestPaths(req)
 	r, _, pos := e.root.matchRoute(paths)
 	if r == nil {

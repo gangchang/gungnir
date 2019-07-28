@@ -24,7 +24,7 @@ func getWildcard(path string) (string, string, bool) {
 		return key, kind, true
 	}
 
-	return "", "", false
+	return path, "", false
 }
 
 func mergeMap(map0 map[string]string, map1 map[string]string) map[string]string {
@@ -42,3 +42,5 @@ func mergeMap(map0 map[string]string, map1 map[string]string) map[string]string 
 
 	return map0
 }
+
+

@@ -1,7 +1,6 @@
 package gungnir
 
 import (
-	"reflect"
 	"strings"
 )
 
@@ -21,29 +20,12 @@ type urlPath struct {
 
 type section struct {
 	path string
-	kind reflect.Kind
 }
 
 func newSection(path string) (section, bool) {
-	sp, kindStr, ok := getWildcard(path)
-	if ok {
-		kind := reflect.Kind(0)
-		switch kindStr {
-		case "string":
-			kind = reflect.String
-		case "int64":
-			kind = reflect.Int64
-		default:
-			panic("kindStr invalid")
-		}
+	sp, _, ok := getWildcard(path)
 
-		return section{
-			path: sp,
-			kind: kind,
-		}, true
-	}
-
-	return section{path: path}, false
+	return section{path:sp}, ok
 }
 
 func newURLPath(path string) urlPath {
@@ -112,7 +94,7 @@ func (up urlPath) matchHandler(paths []string) (map[string]string, bool) {
 
 func (up urlPath) match(paths []string) (int, bool) {
 	i := 0
-	for i = range paths {
+	for i=0; i<len(up.sections);i++ {
 		if _, exists := up.wildcardPos[i]; exists {
 			continue
 		}

@@ -3,6 +3,8 @@ package gungnir
 import (
 	"fmt"
 	"net/http"
+	"reflect"
+	"strings"
 )
 
 type handler func(*Ctx)
@@ -40,6 +42,35 @@ func (r *route) doMiddleWareFns(c *Ctx) bool {
 	}
 
 	return true
+}
+
+// TODO check path
+func (r *route) newSubRoute(path string) *route{
+	return nil
+}
+
+// TODO
+func (r *route) Install(obj interface{}) {
+	typ := reflect.TypeOf(obj)
+	//name := reflect.TypeOf(obj).Name()
+names := strings.Split(typ.String(), ".")
+name := strings.ToLower(names[len(names)-1])
+
+	onePath := getOnePath(name)
+	manyPath := getManyPath(name)
+
+	if coh, ok := obj.(createOneHandler); ok {
+		r.addHandler(onePath, http.MethodPost, coh.CreateOne)
+	}
+	if cmh, ok := obj.(createManyHandler); ok {
+		r.addHandler(manyPath, http.MethodPost, cmh.CreateMany)
+	}
+	if goh, ok := obj.(readOneHandler); ok {
+		r.addHandler(onePath, http.MethodGet, goh.ReadOne)
+	}
+	if gmh, ok := obj.(readManyHandler); ok {
+		r.addHandler(manyPath, http.MethodGet, gmh.ReadMany)
+	}
 }
 
 func (r *route) Group(path string) *route {
@@ -106,7 +137,7 @@ func (r *route) matchRoute(paths []string) (*route, map[string]string, int) {
 
 	nowValues := make(map[string]string)
 	for {
-		matched, route, values, incCnt := nowRoute.match(paths)
+		matched, route, values, incCnt := nowRoute.match(paths[nowCnt:])
 		nowRoute = route
 		nowCnt += incCnt
 		nowValues = mergeMap(nowValues, values)
@@ -149,13 +180,24 @@ func (r *route) match(paths []string) (Matched, *route, map[string]string, int) 
 
 	paths = paths[cnt:]
 	for _, v := range r.subRoutes {
-		matched, subValues, subCnt := v.path.matchRoute(paths)
-		if matched == MatchedFull || matched == MatchedSub {
-			cnt += subCnt
-			valuesMerged := mergeMap(values, subValues)
-			return matched, v, valuesMerged, cnt
+		subMatched, subValues, subCnt := v.path.matchRoute(paths)
+		switch subMatched {
+		case MatchedFull:
+		case MatchedSub:
+			if len(v.subRoutes) == 0 {
+				matched = MatchedFull
+			}
 		}
-	}
+
+		if matched == MatchedNo {
+			continue
+		}
+
+		values = mergeMap(values, subValues)
+		cnt += subCnt
+
+			return matched, v, values, cnt
+		}
 
 	return MatchedNo, nil, nil, -1
 }
