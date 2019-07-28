@@ -1,6 +1,9 @@
 package gungnir
 
-import "strings"
+import (
+	"reflect"
+	"strings"
+)
 
 type Matched int
 
@@ -10,70 +13,130 @@ const (
 	MatchedNo
 )
 
-type urlPath struct{
-	Cnts int
-	paths []string
+type urlPath struct {
+	cnt         int
+	sections    []section
+	wildcardPos map[int]struct{}
+}
+
+type section struct {
+	path string
+	kind reflect.Kind
+}
+
+func newSection(path string) (section, bool) {
+	sp, kindStr, ok := getWildcard(path)
+	if ok {
+		kind := reflect.Kind(0)
+		switch kindStr {
+		case "string":
+			kind = reflect.String
+		case "int64":
+			kind = reflect.Int64
+		default:
+			panic("kindStr invalid")
+		}
+
+		return section{
+			path: sp,
+			kind: kind,
+		}, true
+	}
+
+	return section{path: path}, false
 }
 
 func newURLPath(path string) urlPath {
 	if len(path) == 0 {
 		return urlPath{
-			Cnts: 0,
+			cnt: 0,
 		}
 	}
+
 	paths := strings.Split(purePath(path), "/")
-	return urlPath{
-		Cnts: len(paths),
-		paths: paths,
+	up := urlPath{
+		cnt:         len(paths),
+		wildcardPos: make(map[int]struct{}),
 	}
+	for i, v := range paths {
+		s, isWildcard := newSection(v)
+		up.sections = append(up.sections, s)
+		if isWildcard {
+			up.wildcardPos[i] = struct{}{}
+		}
+	}
+
+	return up
 }
 
-func (up urlPath) match(paths []string) (int, Matched) {
-	if up.Cnts == 0 {
-		return 0, MatchedSub
+func (up urlPath) matchRoute(paths []string) (Matched, map[string]string, int) {
+	if up.cnt == 0 {
+		return MatchedSub, nil, 0
 	}
-	if len(paths) < up.Cnts {
-		return 0, MatchedNo
+	if len(paths) < up.cnt {
+		return MatchedNo, nil, -1
 	}
 
+	length, ok := up.match(paths)
+	if !ok {
+		return MatchedNo, nil, -1
+	}
+
+	length += 1
+	matched := MatchedSub
+	if up.cnt == len(paths) {
+		matched = MatchedFull
+	}
+	values := up.getPathValues(paths)
+
+	return matched, values, length
+}
+
+func (up urlPath) matchHandler(paths []string) (map[string]string, bool) {
+	if len(paths) == 0 && len(up.sections) == 0 {
+		return nil, true
+	}
+	if len(paths) != up.cnt {
+		return nil, false
+	}
+
+	_, ok := up.match(paths)
+	if !ok {
+		return nil, false
+	}
+
+	values := up.getPathValues(paths)
+
+	return values, true
+}
+
+func (up urlPath) match(paths []string) (int, bool) {
 	i := 0
-	for i = range up.paths {
-		if len(up.paths[i]) == 0 {
+	for i = range paths {
+		if _, exists := up.wildcardPos[i]; exists {
 			continue
 		}
-		if strings.EqualFold(up.paths[i], paths[i]) {
+		if strings.EqualFold(up.sections[i].path, paths[i]) {
 			continue
 		} else {
-			return 0, MatchedNo
+			return -1, false
 		}
 	}
-	i += 1
 
-	if up.Cnts == len(paths) {
-		return i, MatchedFull
-	}
-
-	return i, MatchedSub
+	return i, true
 }
 
-func (up urlPath) fullMatch(paths []string) bool {
-	if len(paths) == 0 {
-		return true
-	}
-	if len(paths) != up.Cnts {
-		return false
-	}
-	i := 0
-	for i = range up.paths {
-		if len(up.paths[i]) == 0 {
-			continue
-		}
-		if strings.EqualFold(up.paths[i], paths[i]) {
-			continue
-		} else {
-			return false
-		}
+func (up urlPath) getPathValues(paths []string) map[string]string {
+	wps := len(up.wildcardPos)
+	if wps == 0 {
+		return nil
 	}
 
-	return true
+	values := make(map[string]string, wps)
+		for k := range up.wildcardPos {
+		values[up.sections[k].path] = paths[k]
+	}
+
+		return values
 }
+

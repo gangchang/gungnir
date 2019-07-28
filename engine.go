@@ -8,7 +8,7 @@ type Engine struct {
 	root *route
 }
 
-func New(basePath string) *Engine{
+func New(basePath string) *Engine {
 	r := newRoute(basePath)
 	return &Engine{
 		root: r,
@@ -19,13 +19,13 @@ func (e *Engine) Group(path string) *route {
 	return e.root.Group(path)
 }
 
-func (e *Engine) Run(addr string, closeCh <-chan struct{})error {
-	srv := http.Server{Addr:addr,Handler:e}
+func (e *Engine) Run(addr string, closeCh <-chan struct{}) error {
+	srv := http.Server{Addr: addr, Handler: e}
 	go func() {
-	select {
-	case<-closeCh:
-		 srv.Close()
-	}
+		select {
+		case <-closeCh:
+			srv.Close()
+		}
 	}()
 
 	return srv.ListenAndServe()
@@ -34,12 +34,12 @@ func (e *Engine) Run(addr string, closeCh <-chan struct{})error {
 func (e *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	c := newCtx(resp, req)
 	paths := getRequestPaths(req)
-	r, pos := e.root.findRoute(paths)
+	r, _, pos := e.root.matchRoute(paths)
 	if r == nil {
 		resp.WriteHeader(404)
 		return
 	}
-	handlerFn := r.findHandler(paths[pos:], req.Method)
+	handlerFn, _ := r.matchHandler(paths[pos:], req.Method)
 	if handlerFn == nil {
 		resp.WriteHeader(404)
 		return

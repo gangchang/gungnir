@@ -8,8 +8,8 @@ import (
 type handler func(*Ctx)
 
 type route struct {
-	path urlPath
-	subRoutes    []*route
+	path      urlPath
+	subRoutes []*route
 
 	handlers map[string][]handlerRoute
 
@@ -21,9 +21,9 @@ type handlerRoute struct {
 	handler handler
 }
 
-func newRoute(path string) *route{
+func newRoute(path string) *route {
 	return &route{
-		path: newURLPath(path),
+		path:     newURLPath(path),
 		handlers: make(map[string][]handlerRoute),
 	}
 }
@@ -34,7 +34,7 @@ func (r *route) AddMilldeWare(mwf middleWareFn) {
 
 func (r *route) doMiddleWareFns(c *Ctx) bool {
 	for _, fn := range r.middleWareFns {
-		if !fn(c)  {
+		if !fn(c) {
 			return false
 		}
 	}
@@ -93,96 +93,69 @@ func (r *route) addHandler(path, method string, h handler) {
 	}
 
 	_, exists := r.handlers[method]
-	if !exists{
+	if !exists {
 		r.handlers[method] = make([]handlerRoute, 0)
 	}
 
 	r.handlers[method] = append(r.handlers[method], hr)
 }
 
-func (r *route) findRoute(paths []string) (*route, int) {
+func (r *route) matchRoute(paths []string) (*route, map[string]string, int) {
 	nowRoute := r
 	nowCnt := 0
-	incCnt, matched := nowRoute.Match(paths)
-	if matched==MatchedFull || matched==MatchedSub {
-		nowCnt += incCnt
-	} else {
-		return nil, -1
-	}
+
+	nowValues := make(map[string]string)
 	for {
-		matched, incCnt, matchRoute := nowRoute.MatchSub(paths[nowCnt:])
+		matched, route, values, incCnt := nowRoute.match(paths)
+		nowRoute = route
 		nowCnt += incCnt
+		nowValues = mergeMap(nowValues, values)
+
 		switch matched {
 		case MatchedFull:
-			return matchRoute, nowCnt
+			return nowRoute, nowValues, nowCnt
 		case MatchedSub:
-			if len(matchRoute.subRoutes) == 0 {
-				return matchRoute, nowCnt
-			}
-			nowRoute = matchRoute
-			nowCnt += incCnt
 			continue
 		case MatchedNo:
 			fmt.Println("not matched")
-			return nil, -1
-		default:
-			return nil, -1
+			return nil, nil, -1
 		}
 	}
 }
 
-func (r *route) findHandler(paths []string, method string) handler {
+func (r *route) matchHandler(paths []string, method string) (handler, map[string]string) {
 	methodHandlers, exists := r.handlers[method]
 	if !exists {
-		return nil
+		return nil, nil
 	}
-	for _, v := range methodHandlers{
-		if v.fullMatch(paths) {
-			return v.handler
+
+	for _, v := range methodHandlers {
+		if values, ok := v.matchHandler(paths); ok {
+			return v.handler, values
 		}
 	}
-	return nil
+
+	return nil, nil
 }
 
-func (r *route) Match(paths []string) (int, Matched){
-	cnt, matched := r.path.match(paths)
+func (r *route) match(paths []string) (Matched, *route, map[string]string, int) {
+	matched, values, cnt := r.path.matchRoute(paths)
 	switch matched {
 	case MatchedFull:
-		fallthrough
-	case MatchedSub:
-		return cnt, matched
+		return MatchedFull, r, values, cnt
+	case MatchedNo:
+		return MatchedNo, nil, nil, -1
 	}
 
-	return 0, MatchedNo
-}
-
-func (r *route) MatchSub(paths []string) (Matched, int, *route) {
+	paths = paths[cnt:]
 	for _, v := range r.subRoutes {
-		cnt, matched := v.path.match(paths)
-		if matched == MatchedSub || matched == MatchedFull {
-			return matched, cnt, v
+		matched, subValues, subCnt := v.path.matchRoute(paths)
+		if matched == MatchedFull || matched == MatchedSub {
+			cnt += subCnt
+			valuesMerged := mergeMap(values, subValues)
+			return matched, v, valuesMerged, cnt
 		}
 	}
-	return MatchedNo, -1, nil
-}
 
-func (r *route) Do(paths []string, method string) {
-	switch method {
-	case http.MethodGet:
-		//r.do(r.getHandlers, paths)
-	case http.MethodPost:
-		//r.do(r.postHandlers, paths)
-	default:
-		// not support method
-	}
-}
-
-func (r *route) do(hrs []handlerRoute, paths []string) {
-	for _, v := range hrs {
-		if v.urlPath.fullMatch(paths) {
-			v.handler(nil)
-			return
-		}
-	}
-	//404
+	return MatchedNo, nil, nil, -1
 }

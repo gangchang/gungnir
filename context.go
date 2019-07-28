@@ -9,13 +9,13 @@ import (
 func newCtx(resp http.ResponseWriter, req *http.Request) *Ctx {
 	return &Ctx{
 		Resp: resp,
-		Req: req,
+		Req:  req,
 	}
 }
 
 type Ctx struct {
 	Resp http.ResponseWriter
-	Req *http.Request
+	Req  *http.Request
 }
 
 // TODO now just json
