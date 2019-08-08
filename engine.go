@@ -16,6 +16,10 @@ func (e *Engine) Group(path string) *node {
 	return e.tree.rootNode.Group(path)
 }
 
+func (e *Engine) Register(api interface{}) {
+	e.tree.rootNode.Register(api)
+}
+
 func (e *Engine) Run(addr string, closeCh <-chan struct{}) error {
 	srv := http.Server{Addr: addr, Handler: e}
 	go func() {

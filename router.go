@@ -39,6 +39,70 @@ type node struct {
 	handlers map[string]handler
 }
 
+func (n *node) Register(api interface{}) {
+	ph, ok := api.(typePath)
+	if !ok {
+		// TODO
+		return
+	}
+	typeName := ph.Path()
+
+	// create
+	coh, ok := api.(createOneHandler)
+	if ok {
+		n.addHandlerToChildren(typeName, http.MethodPost, coh.CreateOne)
+	}
+	cmh, ok := api.(createManyHandler)
+	if ok {
+		n.addHandlerToChildren(getCollectionPath(typeName), http.MethodPost, cmh.CreateMany)
+	}
+
+	// read
+	roh, ok := api.(readOneHandler)
+	if ok {
+		n.addHandlerToChildren(getIDPath(typeName), http.MethodGet, roh.ReadOne)
+	}
+	rmh, ok := api.(readManyHandler)
+	if ok {
+		n.addHandlerToChildren(getCollectionPath(typeName), http.MethodGet, rmh.ReadMany)
+	}
+
+	// update
+	uoh, ok := api.(updateOneHandler)
+	if ok {
+		n.addHandlerToChildren(getIDPath(typeName), http.MethodPatch, uoh.UpdateOne)
+	}
+	umh, ok := api.(updateManyHandler)
+	if ok {
+		n.addHandlerToChildren(getCollectionPath(typeName), http.MethodPatch, umh.UpdateMany)
+	}
+
+	// delete
+	doh, ok := api.(deleteOneHandler)
+	if ok {
+		n.addHandlerToChildren(getIDPath(typeName), http.MethodDelete, doh.DeleteOne)
+	}
+	dmh, ok := api.(deleteManyHandler)
+	if ok {
+		n.addHandlerToChildren(getCollectionPath(typeName), http.MethodDelete, dmh.DeleteMany)
+	}
+}
+
+func (n *node) addHandlerToChildren(path, method string, h handler) *node {
+	subNode, exists := n.children[path]
+	if !exists {
+		subNode = n.addChildren(path)
+	}
+	if subNode.handlers == nil {
+		subNode.handlers = make(map[string]handler)
+	}
+	if _, exists := subNode.handlers[method]; !exists {
+		subNode.handlers[method] = h
+	}
+
+	return subNode
+}
+
 func newNode(path string) *node {
 	paths := getPaths(path)
 	pp := getPathParams(paths)

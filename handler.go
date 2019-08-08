@@ -2,19 +2,54 @@ package gungnir
 
 import (
 	"fmt"
-	"path/filepath"
 )
 
+type typePath interface {
+	Path() string
+}
+
+type createOneHandler interface {
+	CreateOne(c Ctx)
+}
+
+type createManyHandler interface {
+	CreateMany(c Ctx)
+}
+
+type readOneHandler interface {
+	ReadOne(c Ctx)
+}
+
+type readManyHandler interface {
+	ReadMany(c Ctx)
+}
+
+type deleteOneHandler interface {
+	DeleteOne(c Ctx)
+}
+
+type deleteManyHandler interface{
+	DeleteMany(c Ctx)
+}
+
+type updateOneHandler interface {
+	UpdateOne(c Ctx)
+}
+
+type updateManyHandler interface {
+	UpdateMany(c Ctx)
+}
+
 type optionsHandler interface {
-	OPTIONS(c *Ctx)
+	OPTIONS(c Ctx)
 }
 
 type getHandler interface {
-	Get(c *Ctx)
+	Get(c Ctx)
 }
 
 type GetCollectionHandler interface {
-	GetCollection(c *Ctx)
+	GetCollection(c Ctx)
 }
 
 type headHandler interface {
@@ -37,30 +72,10 @@ type deleteHandler interface {
 	DELETE(c *Ctx)
 }
 
-type createOneHandler interface {
-	CreateOne(c *Ctx)
+func getIDPath(name string) string {
+	return fmt.Sprintf(":%s_id", name)
 }
 
-type createManyHandler interface {
-	CreateMany(c *Ctx)
-}
-
-type readOneHandler interface {
-	ReadOne(c *Ctx)
-}
-
-type readManyHandler interface {
-	ReadMany(c *Ctx)
-}
-
-func getOnePath(name string) string {
-	return filepath.Join(getManyPath(name), getID(name))
-}
-
-func getManyPath(name string) string {
+func getCollectionPath(name string) string {
 	return fmt.Sprintf("%ss", name)
-}
-
-func getID(name string) string {
-	return fmt.Sprintf("%s_id", name)
 }
