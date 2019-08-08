@@ -7,41 +7,48 @@ import (
 
 func main() {
 	e := gungnir.New("")
-	userGroup := e.Group("user")
+	users := e.Group("users/123")
 	{
-		userGroup.POST("test", User)
-		userGroup.GET("aa/bb", User)
-		userGroup.GET("aa/cc/{id}", User)
+		users.GET(User)
+		user := users.Group(":id/234")
+		user.GET(UserFind)
 	}
-	teacherGroup := e.Group("school")
-	teacherGroup.Install(&Teacher{})
 	closeCh := make(chan struct{}, 1)
 	e.Run(":3737", closeCh)
 }
 
 type UserT struct {
 	Name string `json:"name"`
+	ID string `json:"id"`
 }
 
-func User(c *gungnir.Ctx) {
+func User(c gungnir.Ctx) {
 	ut := &UserT{}
 	c.Bind(ut)
 	fmt.Println(ut)
 	c.Write(200, ut)
 }
 
-type Teacher struct {
-
+func UserFind(c gungnir.Ctx) {
+	ut := &UserT{}
+	c.Bind(ut)
+	ut.ID, _ = c.GetPathParam("id")
+	fmt.Println(ut)
+	c.Write(200, ut)
 }
 
-func (*Teacher) ReadOne(c *gungnir.Ctx) {
-	c.Write(200, map[string]string{
-		"msg": "readone",
-	})
-}
-
-func (*Teacher) ReadMany(c *gungnir.Ctx) {
-		c.Write(200, map[string]string{
-		"msg": "readone",
-	})
-}
+//type Teacher struct {
+//}
+//
+//func (*Teacher) ReadOne(c *gungnir.Ctx) {
+//	c.Write(200, map[string]string{
+//		"msg": "readone",
+//	})
+//}
+//
+//func (*Teacher) ReadMany(c *gungnir.Ctx) {
+//	c.Write(200, map[string]string{
+//		"msg": "readone",
+//	})
+//}
+//

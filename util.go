@@ -1,21 +1,29 @@
 package gungnir
 
 import (
-	"net/http"
 	"strings"
 )
 
-
-
-func purePath(path string) string {
+func getPaths(path string) []string {
 	path = strings.TrimPrefix(path, "/")
 	path = strings.TrimSuffix(path, "/")
-	return path
+	paths := strings.Split(path, "/")
+	if len(paths) == 0 {
+		panic("0 paths")
+	}
+
+	return paths
 }
 
-func getRequestPaths(req *http.Request) []string {
-	path := purePath(req.URL.Path)
-	return strings.Split(path, "/")
+func getPathParams(paths []string) map[int]string {
+	pathParams := make(map[int]string)
+	for k, v := range paths {
+		if strings.HasPrefix(v, ":") {
+			pathParams[k] = v[1:]
+		}
+	}
+
+	return pathParams
 }
 
 func getWildcard(path string) (string, string, bool) {
@@ -28,21 +36,3 @@ func getWildcard(path string) (string, string, bool) {
 
 	return path, "", false
 }
-
-func mergeMap(map0 map[string]string, map1 map[string]string) map[string]string {
-	if map0 == nil && map1 == nil {
-		return nil
-	} else if map0 == nil {
-		return map1
-	} else if map1 == nil {
-		return map0
-	}
-
-	for k, v := range map1 {
-		map0[k] = v
-	}
-
-	return map0
-}
-
-
