@@ -5,19 +5,11 @@ import (
 )
 
 type Engine struct {
-	tree *tree
+	*tree
 }
 
 func New(path string) *Engine {
 	return &Engine{tree: newTree(path)}
-}
-
-func (e *Engine) Group(path string) *node {
-	return e.tree.rootNode.Group(path)
-}
-
-func (e *Engine) Register(api interface{}) {
-	e.tree.rootNode.Register(api)
 }
 
 func (e *Engine) Run(addr string, closeCh <-chan struct{}) error {
@@ -32,12 +24,22 @@ func (e *Engine) Run(addr string, closeCh <-chan struct{}) error {
 }
 
 func (e *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	h, pp := e.tree.matchHandler(req.URL.Path, req.Method)
+	n, h, pp := e.tree.matchHandler(req.URL.Path, req.Method)
 	// NOT FOUND
 	if h == nil {
 		resp.WriteHeader(404)
 		return
 	}
 	c := newCtx(resp, req, pp)
+	for _, v := range n.beforeExecFns {
+		if !v(c) {
+			return
+		}
+	}
 	h(c)
+	for _, v := range n.afterExecFns {
+		if !v(c) {
+			return
+		}
+	}
 }

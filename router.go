@@ -20,21 +20,28 @@ func (pp pathParams) add(subPathParams map[string]string) {
 type handler func(Ctx)
 
 type tree struct {
-	rootNode *node
+	*node
 }
 
 func newTree(path string) *tree {
 	paths := getPaths(path)
 	n := &node{paths: paths}
-	t := &tree{rootNode: n}
+	t := &tree{node: n}
 	return t
 }
 
 type node struct {
-	paths                []string
-	children             map[string]*node
-	wildcardChildrenNode *node
-	pathParams           map[int]string
+	paths []string
+
+	children      map[string]*node
+	wildcardChild *node
+
+	// exec before handler, if return false, just return
+	beforeExecFns []beforeExecFn
+	// exec after handler, if return false, just return
+	afterExecFns []afterExecFn
+
+	pathParams map[int]string
 	// key is method
 	handlers map[string]handler
 }
@@ -43,7 +50,7 @@ func (n *node) Register(api interface{}) {
 	ph, ok := api.(typePath)
 	if !ok {
 		// TODO
-		return
+		panic("must support type path method")
 	}
 	typeName := ph.Path()
 
@@ -60,7 +67,7 @@ func (n *node) Register(api interface{}) {
 	// read
 	roh, ok := api.(readOneHandler)
 	if ok {
-		n.addHandlerToChildren(getIDPath(typeName), http.MethodGet, roh.ReadOne)
+		n.addHandlerToChildren(GetIDPath(typeName), http.MethodGet, roh.ReadOne)
 	}
 	rmh, ok := api.(readManyHandler)
 	if ok {
@@ -70,7 +77,7 @@ func (n *node) Register(api interface{}) {
 	// update
 	uoh, ok := api.(updateOneHandler)
 	if ok {
-		n.addHandlerToChildren(getIDPath(typeName), http.MethodPatch, uoh.UpdateOne)
+		n.addHandlerToChildren(GetIDPath(typeName), http.MethodPatch, uoh.UpdateOne)
 	}
 	umh, ok := api.(updateManyHandler)
 	if ok {
@@ -80,11 +87,23 @@ func (n *node) Register(api interface{}) {
 	// delete
 	doh, ok := api.(deleteOneHandler)
 	if ok {
-		n.addHandlerToChildren(getIDPath(typeName), http.MethodDelete, doh.DeleteOne)
+		n.addHandlerToChildren(GetIDPath(typeName), http.MethodDelete, doh.DeleteOne)
 	}
 	dmh, ok := api.(deleteManyHandler)
 	if ok {
 		n.addHandlerToChildren(getCollectionPath(typeName), http.MethodDelete, dmh.DeleteMany)
+	}
+}
+
+func (n *node) AddBeforeExecFns(befns ...beforeExecFn) {
+	for _, v := range befns {
+		n.beforeExecFns = append(n.beforeExecFns, v)
+	}
+}
+
+func (n *node) AddAfterExecFns(aefns ...afterExecFn) {
+	for _, v := range aefns {
+		n.afterExecFns = append(n.afterExecFns, v)
 	}
 }
 
@@ -114,6 +133,8 @@ func newNode(path string) *node {
 
 func (n *node) addChildren(path string) *node {
 	cn := newNode(path)
+	cn.beforeExecFns = append(cn.beforeExecFns, n.beforeExecFns...)
+	cn.afterExecFns = append(cn.afterExecFns, n.afterExecFns...)
 	// not wildcard
 	if len(cn.pathParams) == 0 || !strings.HasPrefix(cn.paths[0], ":") {
 		if n.children == nil {
@@ -126,11 +147,11 @@ func (n *node) addChildren(path string) *node {
 		}
 		n.children[cn.paths[0]] = cn
 	} else {
-		if n.wildcardChildrenNode != nil {
+		if n.wildcardChild != nil {
 			// TODO
 			panic("confilct")
 		}
-		n.wildcardChildrenNode = cn
+		n.wildcardChild = cn
 	}
 
 	return cn
@@ -160,13 +181,13 @@ func (n *node) addHandler(method string, h handler) {
 	n.handlers[method] = h
 }
 
-func (t *tree) matchHandler(path, method string) (handler, pathParams) {
+func (t *tree) matchHandler(path, method string) (*node, handler, pathParams) {
 	paths := getPaths(path)
 
 	cnt := 0
 	pp := newPathParams()
 
-	nowNode := t.rootNode
+	nowNode := t.node
 	for {
 	routeLabel:
 		// first, itself check
@@ -184,18 +205,18 @@ func (t *tree) matchHandler(path, method string) (handler, pathParams) {
 			}
 		}
 		// last, wildcard children check
-		if nowNode.wildcardChildrenNode != nil {
+		if nowNode.wildcardChild != nil {
 			cnt += len(nowNode.paths)
-			nowNode = nowNode.wildcardChildrenNode
+			nowNode = nowNode.wildcardChild
 		} else {
 			// NOT found
-			return nil, nil
+			return nil, nil, nil
 		}
 	}
 
 handlerLabel:
 	h := nowNode.matchHandler(method)
-	return h, pp
+	return nowNode, h, pp
 }
 
 func (n *node) matchHandler(method string) handler {

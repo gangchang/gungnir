@@ -72,7 +72,7 @@ type deleteHandler interface {
 	DELETE(c *Ctx)
 }
 
-func getIDPath(name string) string {
+func GetIDPath(name string) string {
 	return fmt.Sprintf(":%s_id", name)
 }
 

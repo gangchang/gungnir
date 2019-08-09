@@ -1,57 +1,15 @@
 package main
 
 import (
-	"fmt"
-	"github.com/n1ce37/gungnir"
+	"github.com/gangchang/gungnir"
+	"github.com/gangchang/gungnir/example/apis"
+	"github.com/gangchang/gungnir/example/hooks"
 )
 
 func main() {
 	e := gungnir.New("")
-	users := e.Group("users/123")
-	{
-		users.GET(User)
-		user := users.Group(":id/234")
-		user.GET(UserFind)
-	}
-	e.Register(&Teacher{})
-	closeCh := make(chan struct{}, 1)
-	e.Run(":3737", closeCh)
-}
-
-type UserT struct {
-	Name string `json:"name"`
-	ID string `json:"id"`
-}
-
-func User(c gungnir.Ctx) {
-	ut := &UserT{}
-	c.Bind(ut)
-	fmt.Println(ut)
-	c.Write(200, ut)
-}
-
-func UserFind(c gungnir.Ctx) {
-	ut := &UserT{}
-	c.Bind(ut)
-	ut.ID, _ = c.GetPathParam("id")
-	fmt.Println(ut)
-	c.Write(200, ut)
-}
-
-type Teacher struct {}
-
-func (*Teacher) Path() string {
-	return "teacher"
-}
-
-func (*Teacher) ReadOne(c gungnir.Ctx) {
-	c.Write(200, map[string]string{
-		"msg": "readone",
-	})
-}
-
-func (*Teacher) ReadMany(c gungnir.Ctx) {
-	c.Write(200, map[string]string{
-		"msg": "readmay",
-	})
+	e.AddBeforeExecFns(hooks.TimeBegin)
+	e.AddAfterExecFns(hooks.Resp, hooks.TimeEnd)
+	e.Register(&apis.School{})
+	e.Run(":3737", nil)
 }
